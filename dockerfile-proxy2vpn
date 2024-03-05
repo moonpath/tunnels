@@ -1,0 +1,29 @@
+ARG BASE_IMAGE="ubuntu:22.04"
+FROM $BASE_IMAGE as base_image
+
+ARG CONFIG_DIR_SRC="/dockerconfig"
+ARG DEBIAN_FRONTEND noninteractive
+
+COPY $CONFIG_DIR_SRC/systemctl /usr/bin/systemctl
+
+RUN apt update && \
+    apt install -y \
+    redsocks \
+    libtss2-tcti-tabrmd0 \
+    strongswan \
+    strongswan-pki \
+    libcharon-extra-plugins \
+    libcharon-extauth-plugins \
+    libstrongswan-extra-plugins
+
+RUN mv -f /etc/ipsec.conf{,.bak} && \
+    mv -f /etc/redsocks.conf{,.bak} && \
+    mv -f /etc/sysctl.conf{,.bak}
+
+COPY $CONFIG_DIR_SRC/sysctl.conf /etc/sysctl.conf
+
+WORKDIR /home/$USER
+VOLUME "/home/$USER"
+
+CMD "/bin/bash"
+ENTRYPOINT ["/.dockerinit"]
